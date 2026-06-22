@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My To-Do List</title>
+    <style>
+        /* ---------- RESET & BASE ---------- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .app {
+            max-width: 820px;
+            width: 100%;
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            height: fit-content;
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.02em;
+        }
+        .subhead {
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 1rem;
+        }
+        /* ---------- TOKEN SECTION ---------- */
+        .token-section {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .token-section label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1f2937;
+        }
+        .token-section input[type="password"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            background: white;
+        }
+        .token-section input[type="password"]:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: 1px;
+        }
+        .token-status {
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+        .token-status.active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .btn {
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+        .btn:hover {
+            background: #d1d5db;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #15803d;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* ---------- ADD TASK FORM ---------- */
+        .add-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            margin-bottom: 1.5rem;
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+        }
+        .add-form input,
+        .add-form textarea {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            background: white;
+            font-family: inherit;
+        }
+        .add-form input:focus,
+        .add-form textarea:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: 1px;
+        }
+        .add-form input {
+            flex: 2;
+            min-width: 140px;
+        }
+        .add-form textarea {
+            flex: 3;
+            min-width: 180px;
+            resize: vertical;
+        }
+        .add-form .btn {
+            flex: 0 0 auto;
+        }
+        /* ---------- TASK LIST ---------- */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 0.9rem 1rem;
+            transition: background 0.1s;
+        }
+        .task-item.completed {
+            background: #f3f4f6;
+            opacity: 0.7;
+        }
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+        .task-item.completed .task-desc,
+        .task-item.completed .task-deadline {
+            color: #9ca3af;
+        }
+        .task-check {
+            margin-top: 0.15rem;
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: #2563eb;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .task-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .task-title {
+            font-weight: 600;
+            font-size: 1rem;
+            word-break: break-word;
+        }
+        .task-desc {
+            font-size: 0.9rem;
+            color: #4b5563;
+            margin-top: 0.1rem;
+            word-break: break-word;
+        }
+        .task-deadline {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .task-deadline::before {
+            content: "📅";
+        }
+        .task-delete {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.3rem;
+            transition: background 0.1s, color 0.1s;
+            flex-shrink: 0;
+            margin-top: -0.1rem;
+        }
+        .task-delete:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 2.5rem 0;
+            font-size: 0.95rem;
+        }
+        /* ---------- SAVE BAR ---------- */
+        .save-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        .save-status {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        .save-status.saved {
+            color: #16a34a;
+            font-weight: 500;
+        }
+        .save-status.error {
+            color: #dc2626;
+            font-weight: 500;
+        }
+        .save-bar .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 550px) {
+            .add-form {
+                flex-direction: column;
+            }
+            .add-form input,
+            .add-form textarea {
+                width: 100%;
+            }
+            .token-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .app {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+        <h1>📋 My To-Do List</h1>
+        <div class="subhead">Tasks are stored in your private GitHub repo</div>
+
+        <!-- TOKEN SECTION -->
+        <div class="token-section" id="tokenSection">
+            <label for="tokenInput">🔑 GitHub Token:</label>
+            <input type="password" id="tokenInput" placeholder="Paste your token here..." />
+            <button class="btn btn-primary" id="tokenSaveBtn">Activate</button>
+            <button class="btn" id="tokenClearBtn">Clear</button>
+            <span class="token-status" id="tokenStatus">● Inactive</span>
+        </div>
+
+        <!-- ADD TASK FORM -->
+        <div class="add-form">
+            <input type="text" id="taskTitle" placeholder="Task title (required)" />
+            <textarea id="taskDesc" placeholder="Description (optional)" rows="1"></textarea>
+            <input type="date" id="taskDeadline" />
+            <button class="btn btn-primary" id="addBtn">+ Add Task</button>
+        </div>
+
+        <!-- TASK LIST -->
+        <div id="taskList" class="task-list">
+            <div class="empty-state">No tasks yet. Add one above!</div>
+        </div>
+
+        <!-- SAVE BAR -->
+        <div class="save-bar">
+            <span class="save-status" id="saveStatus">💾 Changes are saved automatically</span>
+            <div class="btn-group">
+                <button class="btn btn-success" id="saveBtn">💾 Save Now</button>
+                <button class="btn" id="refreshBtn">🔄 Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  CONFIGURATION — EDIT THESE TWO LINES WITH YOUR INFO
+        // ============================================================
+        const GITHUB_OWNER = "CE47"; // <-- CHANGE THIS
+        const GITHUB_REPO = "todo-data"; // <-- your private data repo
+        const FILE_PATH = "todos.json";
+        // ============================================================
+
+        // ---- STATE ----
+        let tasks = [];
+        let token = ""; // stored in sessionStorage
+        let isLoading = false;
+
+        // ---- DOM REFS ----
+        const tokenInput = document.getElementById("tokenInput");
+        const tokenSaveBtn = document.getElementById("tokenSaveBtn");
+        const tokenClearBtn = document.getElementById("tokenClearBtn");
+        const tokenStatus = document.getElementById("tokenStatus");
+        const taskList = document.getElementById("taskList");
+        const taskTitle = document.getElementById("taskTitle");
+        const taskDesc = document.getElementById("taskDesc");
+        const taskDeadline = document.getElementById("taskDeadline");
+        const addBtn = document.getElementById("addBtn");
+        const saveBtn = document.getElementById("saveBtn");
+        const refreshBtn = document.getElementById("refreshBtn");
+        const saveStatus = document.getElementById("saveStatus");
+
+        // ---- HELPERS ----
+        function getToken() {
+            return sessionStorage.getItem("github_token") || "";
+        }
+
+        function setToken(t) {
+            if (t) {
+                sessionStorage.setItem("github_token", t);
+            } else {
+                sessionStorage.removeItem("github_token");
+            }
+            token = t;
+            updateTokenUI();
+        }
+
+        function updateTokenUI() {
+            const has = !!getToken();
+            tokenInput.value = has ? "••••••••••••••••" : "";
+            tokenStatus.textContent = has ? "● Active" : "● Inactive";
+            tokenStatus.className = "token-status" + (has ? " active" : "");
+            // Enable/disable save/refresh buttons based on token
+            const btns = [saveBtn, refreshBtn, addBtn];
+            btns.forEach(b => b.disabled = !has);
+        }
+
+        function setStatus(msg, type) {
+            saveStatus.textContent = msg;
+            saveStatus.className = "save-status" + (type ? " " + type : "");
+        }
+
+        function renderTasks() {
+            if (!tasks || tasks.length === 0) {
+                taskList.innerHTML = `<div class="empty-state">✨ No tasks yet. Add one above!</div>`;
+                return;
+            }
+            let html = "";
+            for (let i = 0; i < tasks.length; i++) {
+                const t = tasks[i];
+                const checked = t.done ? "checked" : "";
+                const doneClass = t.done ? "completed" : "";
+                const deadline = t.deadline || "";
+                html += `
+                    <div class="task-item ${doneClass}">
+                        <input type="checkbox" class="task-check" data-index="${i}" ${checked} />
+                        <div class="task-body">
+                            <div class="task-title">${escapeHtml(t.title)}</div>
+                            ${t.description ? `<div class="task-desc">${escapeHtml(t.description)}</div>` : ""}
+                            ${deadline ? `<div class="task-deadline">${escapeHtml(deadline)}</div>` : ""}
+                        </div>
+                        <button class="task-delete" data-index="${i}" title="Delete task">✕</button>
+                    </div>
+                `;
+            }
+            taskList.innerHTML = html;
+
+            // ---- event listeners ----
+            taskList.querySelectorAll(".task-check").forEach(cb => {
+                cb.addEventListener("change", function() {
+                    const idx = parseInt(this.dataset.index);
+                    tasks[idx].done = this.checked;
+                    saveToGitHub();
+                });
+            });
+            taskList.querySelectorAll(".task-delete").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const idx = parseInt(this.dataset.index);
+                    tasks.splice(idx, 1);
+                    renderTasks();
+                    saveToGitHub();
+                });
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            const div = document.createElement("div");
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ---- GITHUB API ----
+        async function fetchFromGitHub() {
+            const tok = getToken();
+            if (!tok) { setStatus("❌ No token set", "error"); return false; }
+            try {
+                setStatus("⏳ Loading tasks...", "");
+                const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
+                const res = await fetch(url, {
+                    headers: {
+                        "Authorization": `token ${tok}`,
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                });
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        setStatus("❌ File not found. Create todos.json in your private repo.", "error");
+                    } else if (res.status === 401) {
+                        setStatus("❌ Invalid token. Please re-enter your token.", "error");
+                    } else {
+                        setStatus(`❌ Error ${res.status}: ${res.statusText}`, "error");
+                    }
+                    return false;
+                }
+                const data = await res.json();
+                const content = atob(data.content);
+                tasks = JSON.parse(content);
+                if (!Array.isArray(tasks)) tasks = [];
+                renderTasks();
+                setStatus(`✅ Loaded ${tasks.length} tasks`, "saved");
+                return true;
+            } catch (err) {
+                setStatus("❌ Network error: " + err.message, "error");
+                return false;
+            }
+        }
+
+        async function saveToGitHub() {
+            const tok = getToken();
+            if (!tok) { setStatus("❌ No token set", "error"); return false; }
+            if (isLoading) return false;
+            isLoading = true;
+            saveBtn.disabled = true;
+            setStatus("⏳ Saving...", "");
+            try {
+                // 1) Get current file to retrieve SHA
+                const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
+                const getRes = await fetch(url, {
+                    headers: {
+                        "Authorization": `token ${tok}`,
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                });
+                if (!getRes.ok) {
+                    setStatus("❌ Could not fetch file before saving", "error");
+                    isLoading = false;
+                    saveBtn.disabled = false;
+                    return false;
+                }
+                const fileData = await getRes.json();
+                const sha = fileData.sha;
+
+                // 2) Update file
+                const content = btoa(JSON.stringify(tasks, null, 2));
+                const putRes = await fetch(url, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `token ${tok}`,
+                        "Content-Type": "application/json",
+                        "Accept": "application/vnd.github.v3+json"
+                    },
+                    body: JSON.stringify({
+                        message: "Update todos from web app",
+                        content: content,
+                        sha: sha
+                    })
+                });
+                if (!putRes.ok) {
+                    const errData = await putRes.json();
+                    setStatus(`❌ Save failed: ${errData.message || putRes.statusText}`, "error");
+                    isLoading = false;
+                    saveBtn.disabled = false;
+                    return false;
+                }
+                setStatus(`✅ Saved ${tasks.length} tasks`, "saved");
+                isLoading = false;
+                saveBtn.disabled = false;
+                return true;
+            } catch (err) {
+                setStatus("❌ Network error: " + err.message, "error");
+                isLoading = false;
+                saveBtn.disabled = false;
+                return false;
+            }
+        }
+
+        // ---- UI ACTIONS ----
+        function addTask() {
+            const title = taskTitle.value.trim();
+            if (!title) { alert("Please enter a task title."); return; }
+            const description = taskDesc.value.trim();
+            const deadline = taskDeadline.value || "";
+            tasks.push({
+                title: title,
+                description: description,
+                deadline: deadline,
+                done: false
+            });
+            taskTitle.value = "";
+            taskDesc.value = "";
+            taskDeadline.value = "";
+            renderTasks();
+            saveToGitHub();
+        }
+
+        // ---- EVENT BINDING ----
+        tokenSaveBtn.addEventListener("click", async function() {
+            const raw = tokenInput.value.trim();
+            if (!raw) { alert("Please paste your token."); return; }
+            
+            // Temporarily store the token to test it
+            setToken(raw);
+            tokenInput.value = "••••••••••••••••";
+            
+            // Disable buttons while testing
+            saveBtn.disabled = true;
+            addBtn.disabled = true;
+            refreshBtn.disabled = true;
+            setStatus("⏳ Validating your token...", "");
+            
+            // Attempt to fetch the todos.json file
+            const success = await fetchFromGitHub();
+            
+            if (!success) {
+                // Token failed! Completely wipe it out.
+                setToken(""); 
+                tokenInput.value = "";
+                updateTokenUI(); // This re-disables all buttons
+                setStatus("❌ Invalid Token or Repo. Please check your token and try again.", "error");
+                alert("❌ Validation failed! \n\nMake sure:\n1. Your token is correct (generated with 'repo' scope).\n2. Your GitHub username is spelled correctly in the code.\n3. The 'todo-data' repo exists and has a 'todos.json' file.");
+            } else {
+                // Token works! Keep it and unlock everything.
+                setStatus("✅ Token validated! Tasks loaded successfully.", "saved");
+                updateTokenUI(); // This enables all buttons
+            }
+        });
+
+        tokenClearBtn.addEventListener("click", function() {
+            setToken("");
+            tokenInput.value = "";
+            tasks = [];
+            renderTasks();
+            setStatus("💾 Token cleared", "");
+        });
+
+        // Load token from sessionStorage on page load
+        (function init() {
+            const stored = getToken();
+            if (stored) {
+                tokenInput.value = "••••••••••••••••";
+                updateTokenUI();
+                fetchFromGitHub();
+            } else {
+                updateTokenUI();
+                setStatus("🔑 Enter your token and click Activate", "");
+            }
+        })();
+
+        addBtn.addEventListener("click", addTask);
+        // Allow Enter key on title field
+        taskTitle.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") { e.preventDefault();
+                addTask(); }
+        });
+
+        saveBtn.addEventListener("click", function() {
+            saveToGitHub();
+        });
+
+        refreshBtn.addEventListener("click", function() {
+            fetchFromGitHub();
+        });
+
+        // ---- auto-save on checkbox/delete is handled inside renderTasks ----
+        console.log("✅ To-Do App ready!");
+        console.log(`📁 Owner: ${GITHUB_OWNER}, Repo: ${GITHUB_REPO}`);
+    </script>
+</body>
+</html>
