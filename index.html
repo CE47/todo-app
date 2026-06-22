@@ -387,6 +387,15 @@
         }
 
         function renderTasks() {
+            // ----- SORT TASKS BY DEADLINE (earliest first) -----
+            tasks.sort((a, b) => {
+                // If no deadline, treat it as "9999-12-31" so it goes to the bottom
+                const dateA = a.deadline || "9999-12-31";
+                const dateB = b.deadline || "9999-12-31";
+                return dateA.localeCompare(dateB); // Ascending order (earliest first)
+            });
+            // ----------------------------------------------------
+        
             if (!tasks || tasks.length === 0) {
                 taskList.innerHTML = `<div class="empty-state">✨ No tasks yet. Add one above!</div>`;
                 return;
@@ -410,7 +419,7 @@
                 `;
             }
             taskList.innerHTML = html;
-
+        
             // ---- event listeners ----
             taskList.querySelectorAll(".task-check").forEach(cb => {
                 cb.addEventListener("change", function() {
@@ -423,7 +432,7 @@
                 btn.addEventListener("click", function() {
                     const idx = parseInt(this.dataset.index);
                     tasks.splice(idx, 1);
-                    renderTasks();
+                    renderTasks(); // Re-sort and re-render
                     saveToGitHub();
                 });
             });
